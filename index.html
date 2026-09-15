@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오늘 뭐 먹지? 점심 메뉴 추천</title>
+    <style>
+        :root {
+            --primary-color: #ff6b6b;
+            --secondary-color: #4ecdc4;
+            --background-color: #f7f9fa;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vi;
+        }
+
+        header {
+            background-color: white;
+            width: 100%;
+            text-align: center;
+            padding: 2rem 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        h1 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 2.5rem;
+        }
+
+        p {
+            color: #666;
+            margin-top: 0.5rem;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 90%;
+            margin: 3rem auto;
+            text-align: center;
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        }
+
+        .roulette-box {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 2rem 0;
+            padding: 1.5rem;
+            border: 3px dashed var(--secondary-color);
+            border-radius: 10px;
+            background-color: #fafafa;
+            min-height: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 1rem 2.5rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #ff5252;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .category-tags {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            background-color: #eee;
+            padding: 0.5rem 1rem;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>무조건 고른다! 점심 메뉴 추천 픽</h1>
+        <p>오늘 점심 메뉴가 고민되시나요? 버튼을 눌러보세요!</p>
+    </header>
+
+    <div class="container">
+        <div class="roulette-box" id="menuDisplay">
+            🤔 무엇을 먹게 될까요?
+        </div>
+        <button onclick="pickMenu()">메뉴 추천받기</button>
+
+        <div class="category-tags">
+            <span class="tag">#한식</span>
+            <span class="tag">#중식</span>
+            <span class="tag">#일식</span>
+            <span class="tag">#양식</span>
+            <span class="tag">#분식</span>
+        </div>
+    </div>
+
+    <script>
+        const menuList = [
+            "김치찌개에 계란말이", "제육볶음 정식", "부대찌개", "비빔밥", "뚝배기 불고기",
+            "짜장면과 탕수육", "짬뽕", "볶음밥", "마라탕",
+            "돈카츠 (돈까스)", "라멘", "초밥 (스시)", "규동 (소고기덮밥)",
+            "파스타", "수제버거", "샌드위치와 샐러드", "피자",
+            "떡볶이와 튀김", "김밥과 라면", "돈까스 김치나베"
+        ];
+
+        function pickMenu() {
+            const display = document.getElementById('menuDisplay');
+            let count = 0;
+            
+            // 룰렛 효과 구현 (0.1초마다 메뉴가 바뀜)
+            const interval = setInterval(() => {
+                const randomIdx = Math.floor(Math.random() * menuList.length);
+                display.innerText = menuList[randomIdx];
+                count++;
+                
+                // 10번 바뀐 후 멈춤
+                if (count > 10) {
+                    clearInterval(interval);
+                    // 최종 선택된 메뉴 강조
+                    display.style.color = '#ff6b6b';
+                    display.style.scale = '1.05';
+                    setTimeout(() => {
+                        display.style.scale = '1';
+                    }, 200);
+                } else {
+                    display.style.color = '#333';
+                }
+            }, 100);
+        }
+    </script>
+
+</body>
+</html>
