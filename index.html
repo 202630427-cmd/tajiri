@@ -1,169 +1,800 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>오늘 뭐 먹지? 점심 메뉴 추천</title>
-    <style>
-        :root {
-            --primary-color: #ff6b6b;
-            --secondary-color: #4ecdc4;
-            --background-color: #f7f9fa;
-            --text-color: #333;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>밤이면 밤마다 — 카페인 없는 음료 사전</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --night:#1A1C3A;
+  --night-deep:#111327;
+  --panel:#23264A;
+  --panel-2:#2C2F58;
+  --tea:#E9B44C;
+  --herb:#8FC0A9;
+  --blush:#D98C8C;
+  --text:#EDEAF2;
+  --text-dim:#A7A4BE;
+  --line:#3A3D66;
+}
+:root:not([data-theme="light"]){ color-scheme:dark; }
+:root[data-theme="dark"]{ color-scheme:dark; }
 
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vi;
-        }
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  margin:0;
+  background:var(--night);
+  color:var(--text);
+  font-family:"IBM Plex Sans KR","Apple SD Gothic Neo",system-ui,sans-serif;
+  font-weight:300;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
+}
 
-        header {
-            background-color: white;
-            width: 100%;
-            text-align: center;
-            padding: 2rem 0;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
+.wrap{
+  max-width:640px;margin:0 auto;padding:20px 22px 24px;
+  width:100%;
+  flex:1;
+  display:flex;flex-direction:column;
+}
 
-        h1 {
-            margin: 0;
-            color: var(--primary-color);
-            font-size: 2.5rem;
-        }
+.topbar{
+  display:flex;flex-direction:column;align-items:center;
+  gap:2px;margin-bottom:20px;text-align:center;
+  position:relative;
+}
+.mark{font-family:"Gowun Batang",serif;font-size:26px;letter-spacing:.02em;font-weight:700;cursor:default;user-select:none;}
+.mark span{color:var(--tea);}
+.clock{font-size:12px;color:var(--text-dim);}
 
-        p {
-            color: #666;
-            margin-top: 0.5rem;
-        }
+/* ---- 이스터에그: 낙하 게임 ---- */
+.egg-overlay{
+  position:fixed;inset:0;z-index:80;
+  background:var(--night-deep);
+  opacity:0;visibility:hidden;transform:scale(.97);
+  transition:opacity .22s ease, transform .22s ease, visibility 0s linear .22s;
+  pointer-events:none;
+  overflow:hidden;
+  touch-action:none;
+}
+.egg-overlay.open{
+  opacity:1;visibility:visible;transform:scale(1);pointer-events:auto;
+  transition:opacity .22s ease, transform .22s ease;
+}
+.egg-hud{
+  position:absolute;top:calc(14px + env(safe-area-inset-top,0px));left:16px;right:16px;
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:14px;color:var(--text);z-index:3;
+}
+.egg-hud .lives{letter-spacing:2px;}
+.egg-close{
+  width:34px;height:34px;border-radius:50%;
+  background:var(--panel);border:1px solid var(--line);color:var(--text);
+  font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+.egg-item{
+  position:absolute;font-size:22px;line-height:1;user-select:none;
+  width:40px;height:40px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  transform:translateX(-50%);
+}
+.egg-item.good{background:rgba(143,192,169,.22);border:2px solid var(--herb);box-shadow:0 0 10px rgba(143,192,169,.35);}
+.egg-item.bad{background:rgba(217,140,140,.22);border:2px solid var(--blush);box-shadow:0 0 10px rgba(217,140,140,.35);}
+.egg-basket{
+  position:absolute;bottom:calc(26px + env(safe-area-inset-bottom,0px));
+  font-size:38px;line-height:1;transform:translateX(-50%);user-select:none;
+}
+.egg-msg{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:14px;text-align:center;
+  padding:0 30px;
+}
+.egg-msg h3{font-family:"Gowun Batang",serif;font-size:22px;margin:0;}
+.egg-msg p{margin:0;color:var(--text-dim);font-size:14px;}
+.egg-btn{
+  font-family:inherit;font-size:14px;color:var(--night);background:var(--tea);
+  border:none;border-radius:999px;padding:10px 20px;cursor:pointer;font-weight:600;
+}
 
-        .container {
-            max-width: 600px;
-            width: 90%;
-            margin: 3rem auto;
-            text-align: center;
-            background: white;
-            padding: 2.5rem;
-            border-radius: 20px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-        }
+.mono-toggle{
+  position:absolute;top:0;right:0;
+  width:34px;height:34px;border-radius:50%;
+  background:var(--panel);border:1px solid var(--line);color:var(--text);
+  font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:.16s ease;
+}
+.mono-toggle:hover{background:var(--panel-2);}
+.mono-toggle:focus-visible{outline:2px solid var(--tea);outline-offset:2px;}
+.mono-toggle[aria-pressed="true"]{background:var(--text);color:var(--night);border-color:var(--text);}
 
-        .roulette-box {
-            font-size: 2rem;
-            font-weight: bold;
-            margin: 2rem 0;
-            padding: 1.5rem;
-            border: 3px dashed var(--secondary-color);
-            border-radius: 10px;
-            background-color: #fafafa;
-            min-height: 3rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
+body.light{
+  --night:#F7F7FB;
+  --night-deep:#EFEFF6;
+  --panel:#FFFFFF;
+  --panel-2:#F1F1F8;
+  --tea:#C97F1C;
+  --herb:#3F9668;
+  --blush:#C2564F;
+  --text:#16171F;
+  --text-dim:#6B6D80;
+  --line:#E5E5EF;
+}
+body.light .card,
+body.light .price-chip,
+body.light .mood,
+body.light .nav-arrow,
+body.light .mono-toggle{
+  box-shadow:0 2px 10px rgba(22,23,31,.06);
+}
+body.light .mood[aria-pressed="true"]{
+  box-shadow:0 4px 14px rgba(201,127,28,.28);
+}
+body.light .next-btn{
+  box-shadow:0 4px 14px rgba(63,150,104,.28);
+}
 
-        button {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 1rem 2.5rem;
-            font-size: 1.2rem;
-            font-weight: bold;
-            border-radius: 30px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
-            transition: transform 0.2s, background-color 0.2s;
-        }
+.ask{display:none;}
 
-        button:hover {
-            background-color: #ff5252;
-            transform: translateY(-2px);
-        }
+/* ---- 상태 선택: 큰 타일 ---- */
+.moods{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:10px;
+  margin:0 0 22px;
+}
+.mood{
+  font-family:inherit;color:var(--text-dim);
+  background:var(--panel);border:1.5px solid var(--line);border-radius:16px;
+  padding:18px 6px 14px;cursor:pointer;transition:.16s ease;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+}
+.mood .ico{font-size:34px;line-height:1;}
+.mood .lab{font-size:12.5px;font-weight:400;text-align:center;line-height:1.3;}
+.mood:hover{border-color:var(--herb);}
+.mood:focus-visible{outline:2px solid var(--tea);outline-offset:2px;}
+.mood[aria-pressed="true"]{
+  background:var(--tea);border-color:var(--tea);color:#231B06;
+}
+.mood[aria-pressed="true"] .lab{font-weight:600;}
 
-        button:active {
-            transform: translateY(0);
-        }
+@media (max-width:420px){
+  .moods{grid-template-columns:repeat(3,1fr);}
+}
 
-        .category-tags {
-            margin-top: 2rem;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
+.random-btn{
+  font-family:inherit;color:var(--night);
+  background:linear-gradient(135deg,var(--tea),#F2CE7A);
+  border:none;border-radius:16px;
+  padding:16px 6px 14px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  width:100%;
+}
+.reel-window{
+  width:58px;height:58px;border-radius:10px;
+  background:#1B1204;
+  overflow:hidden;position:relative;
+  box-shadow:inset 0 3px 6px rgba(0,0,0,.5), inset 0 -3px 6px rgba(0,0,0,.5);
+}
+.reel-window::before,
+.reel-window::after{
+  content:"";position:absolute;left:0;right:0;height:16px;
+  background:linear-gradient(#1B1204, rgba(27,18,4,0));
+  z-index:2;pointer-events:none;
+}
+.reel-window::before{top:0;}
+.reel-window::after{bottom:0;transform:rotate(180deg);}
+.reel-track{position:absolute;left:0;top:0;width:100%;}
+.reel-item{
+  height:58px;display:flex;align-items:center;justify-content:center;
+  font-size:32px;line-height:1;
+}
+.random-btn .lab{font-size:12.5px;font-weight:600;color:#231B06;text-align:center;line-height:1.3;}
+.random-btn:focus-visible{outline:2px solid var(--text);outline-offset:2px;}
+.random-btn:disabled{cursor:default;}
 
-        .tag {
-            background-color: #eee;
-            padding: 0.5rem 1rem;
-            border-radius: 15px;
-            font-size: 0.9rem;
-            color: #555;
-        }
-    </style>
+/* ---- 결과 스테이지 : 좌우 화살표 + 카드 ---- */
+.stage{flex:1;display:flex;flex-direction:column;justify-content:center;}
+.decor{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  padding:10px 0 20px;
+}
+.decor svg{width:100%;max-width:320px;height:auto;}
+@media (prefers-reduced-motion:no-preference){
+  .float{animation:bob 4.2s ease-in-out infinite;transform-origin:center;}
+  .f1{animation-duration:4.4s;animation-delay:0s;}
+  .f2{animation-duration:5.1s;animation-delay:.4s;}
+  .f3{animation-duration:4.7s;animation-delay:.9s;}
+  .f4{animation-duration:5.4s;animation-delay:.2s;}
+  .f5{animation-duration:4.9s;animation-delay:1.1s;}
+  .f6{animation-duration:5.6s;animation-delay:.6s;}
+  @keyframes bob{
+    0%{transform:translateY(0) rotate(0deg) scale(1);}
+    25%{transform:translateY(-6px) rotate(-4deg) scale(1.03);}
+    50%{transform:translateY(-9px) rotate(0deg) scale(1.05);}
+    75%{transform:translateY(-4px) rotate(4deg) scale(1.02);}
+    100%{transform:translateY(0) rotate(0deg) scale(1);}
+  }
+  .twinkle{animation:twinkle 2.4s ease-in-out infinite;transform-origin:center;}
+  .t2{animation-delay:.5s;}
+  .t3{animation-delay:1s;}
+  @keyframes twinkle{
+    0%,100%{opacity:.2;transform:scale(.6);}
+    50%{opacity:1;transform:scale(1.25);}
+  }
+}
+.deck{
+  position:fixed;inset:0;z-index:50;
+  background:var(--night);
+  display:flex;align-items:stretch;gap:8px;
+  padding:calc(14px + env(safe-area-inset-top,0px)) 14px calc(14px + env(safe-area-inset-bottom,0px));
+  opacity:0;visibility:hidden;transform:scale(.96);
+  transition:opacity .26s ease, transform .26s ease, visibility 0s linear .26s;
+  pointer-events:none;
+}
+.deck.open{
+  opacity:1;visibility:visible;transform:scale(1);
+  transition:opacity .26s ease, transform .26s ease;
+  pointer-events:auto;
+}
+.close-btn{
+  position:absolute;top:16px;left:16px;z-index:51;
+  width:38px;height:38px;border-radius:50%;
+  background:var(--panel);border:1px solid var(--line);color:var(--text);
+  font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+.close-btn:hover{background:var(--panel-2);}
+.close-btn:focus-visible{outline:2px solid var(--tea);outline-offset:2px;}
+.hint{
+  text-align:center;color:var(--text-dim);font-size:13.5px;
+  border:1px dashed var(--line);border-radius:16px;padding:40px 20px;
+}
+.deck{display:flex;align-items:center;gap:8px;}
+.nav-arrow{
+  flex:0 0 auto;align-self:center;
+  width:38px;height:38px;border-radius:50%;
+  background:var(--panel);border:1px solid var(--line);color:var(--text);
+  font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:.16s ease;
+}
+.nav-arrow:hover{background:var(--panel-2);border-color:var(--herb);}
+.nav-arrow:focus-visible{outline:2px solid var(--tea);outline-offset:2px;}
+.nav-arrow:disabled{opacity:.3;cursor:default;}
+
+.card{
+  width:100%;height:100%;
+  background:var(--panel);
+  padding:32px 26px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;
+  gap:16px;
+}
+.card .emoji{font-size:80px;line-height:1;}
+.card h2{font-family:"Gowun Batang",serif;font-size:clamp(28px,7vw,40px);margin:0;font-weight:700;}
+.card .desc{
+  font-family:"Gowun Batang",serif;
+  font-size:clamp(17px,4.4vw,22px);color:var(--text-dim);
+  font-style:italic;letter-spacing:.01em;
+  margin:0;max-width:26em;line-height:1.8;
+}
+
+/* ---- 위치 점 표시 ---- */
+.dots{
+  position:absolute;left:0;right:0;bottom:22px;
+  display:flex;justify-content:center;gap:6px;
+}
+.dot{
+  width:7px;height:7px;border-radius:50%;background:var(--line);border:none;padding:0;cursor:pointer;
+}
+.dot[aria-current="true"]{background:var(--tea);width:18px;border-radius:4px;}
+.dot:focus-visible{outline:2px solid var(--tea);outline-offset:2px;}
+
+footer{padding-top:16px;font-size:12px;color:var(--text-dim);text-align:center;}
+
+#cardBox{position:relative;overflow:hidden;height:100%;}
+.page{width:100%;height:100%;transition:transform .3s cubic-bezier(.4,0,.2,1), opacity .3s ease;}
+.page.exit-left{transform:translateX(-100%);opacity:0;}
+.page.exit-right{transform:translateX(100%);opacity:0;}
+.page.enter-from-left{transform:translateX(-100%);opacity:0;}
+.page.enter-from-right{transform:translateX(100%);opacity:0;}
+.page.enter-first{opacity:0;transform:scale(.92);}
+.page.settled{transform:translateX(0) scale(1);opacity:1;}
+.page.exit-left,
+.page.exit-right{position:absolute;top:0;left:0;z-index:2;}
+@media (prefers-reduced-motion:reduce){
+  .page{transition:none;}
+}
+</style>
 </head>
 <body>
 
-    <header>
-        <h1>무조건 고른다! 점심 메뉴 추천 픽</h1>
-        <p>오늘 점심 메뉴가 고민되시나요? 버튼을 눌러보세요!</p>
-    </header>
+<div class="wrap">
+  <div class="topbar">
+    <button class="mono-toggle" id="monoToggle" aria-pressed="false" aria-label="라이트 모드 전환">☾</button>
+    <div class="mark" id="logoMark">밤이면 밤마다<span>.</span></div>
+    <div class="clock" id="clock"></div>
+  </div>
 
-    <div class="container">
-        <div class="roulette-box" id="menuDisplay">
-            🤔 무엇을 먹게 될까요?
-        </div>
-        <button onclick="pickMenu()">메뉴 추천받기</button>
-
-        <div class="category-tags">
-            <span class="tag">#한식</span>
-            <span class="tag">#중식</span>
-            <span class="tag">#일식</span>
-            <span class="tag">#양식</span>
-            <span class="tag">#분식</span>
-        </div>
+  <div class="egg-overlay" id="eggOverlay">
+    <div class="egg-hud">
+      <span id="eggScore">0점</span>
+      <span class="lives" id="eggLives">❤️❤️❤️</span>
+      <button class="egg-close" id="eggClose" aria-label="게임 닫기">✕</button>
     </div>
+    <div id="eggField" style="position:absolute;inset:0;"></div>
+    <div class="egg-msg" id="eggStart">
+      <h3>카페인 피하기</h3>
+      <p>초록 테두리는 디카페인, 빨강 테두리는 카페인이에요.<br>화면을 좌우로 밀어서 컵을 움직이고, 초록만 받으세요.</p>
+      <button class="egg-btn" id="eggStartBtn">시작</button>
+    </div>
+  </div>
 
-    <script>
-        const menuList = [
-            "김치찌개에 계란말이", "제육볶음 정식", "부대찌개", "비빔밥", "뚝배기 불고기",
-            "짜장면과 탕수육", "짬뽕", "볶음밥", "마라탕",
-            "돈카츠 (돈까스)", "라멘", "초밥 (스시)", "규동 (소고기덮밥)",
-            "파스타", "수제버거", "샌드위치와 샐러드", "피자",
-            "떡볶이와 튀김", "김밥과 라면", "돈까스 김치나베"
-        ];
+  <div class="moods" id="moods" role="group" aria-label="상태 선택">
+    <button class="mood" data-mood="sleep" aria-pressed="false"><span class="ico">😴</span><span class="lab">잠이<br>안 와요</span></button>
+    <button class="mood" data-mood="focus" aria-pressed="false"><span class="ico">📚</span><span class="lab">집중<br>하고 싶어요</span></button>
+    <button class="mood" data-mood="stress" aria-pressed="false"><span class="ico">🤯</span><span class="lab">스트레스<br>받아요</span></button>
+    <button class="mood" data-mood="morning" aria-pressed="false"><span class="ico">🥱</span><span class="lab">아침에<br>개운하게</span></button>
+    <button class="mood" data-mood="tasty" aria-pressed="false"><span class="ico">🍹</span><span class="lab">그냥<br>맛있는 거</span></button>
+  </div>
 
-        function pickMenu() {
-            const display = document.getElementById('menuDisplay');
-            let count = 0;
-            
-            // 룰렛 효과 구현 (0.1초마다 메뉴가 바뀜)
-            const interval = setInterval(() => {
-                const randomIdx = Math.floor(Math.random() * menuList.length);
-                display.innerText = menuList[randomIdx];
-                count++;
-                
-                // 10번 바뀐 후 멈춤
-                if (count > 10) {
-                    clearInterval(interval);
-                    // 최종 선택된 메뉴 강조
-                    display.style.color = '#ff6b6b';
-                    display.style.scale = '1.05';
-                    setTimeout(() => {
-                        display.style.scale = '1';
-                    }, 200);
-                } else {
-                    display.style.color = '#333';
-                }
-            }, 100);
-        }
-    </script>
+  <button class="random-btn" id="randomBtn">
+    <div class="reel-window">
+      <div class="reel-track" id="reelTrack"><div class="reel-item">🎰</div></div>
+    </div>
+    <span class="lab">오늘의 랜덤 추천</span>
+  </button>
 
+  <div class="stage">
+    <div class="decor" id="decor" aria-hidden="true">
+      <svg viewBox="0 0 320 260" xmlns="http://www.w3.org/2000/svg">
+        <g class="twinkle t1"><circle cx="30" cy="34" r="2.4" fill="var(--tea)"/></g>
+        <g class="twinkle t2"><circle cx="292" cy="58" r="2" fill="var(--herb)"/></g>
+        <g class="twinkle t3"><circle cx="58" cy="208" r="1.8" fill="var(--blush)"/></g>
+        <g class="twinkle t1"><circle cx="266" cy="212" r="2.2" fill="var(--tea)"/></g>
+        <g class="twinkle t2"><circle cx="200" cy="30" r="1.7" fill="var(--blush)"/></g>
+        <g class="twinkle t3"><circle cx="20" cy="130" r="1.6" fill="var(--herb)"/></g>
+        <g class="twinkle t2"><circle cx="300" cy="150" r="1.8" fill="var(--tea)"/></g>
+
+        <path d="M244 40c8-10 22-10 28 2 10-4 22 4 20 16-2 10-14 14-22 10-2 8-14 12-22 6-8 10-22 6-24-6-10 0-16-12-8-20 2-6 20-14 28-8z"
+              fill="none" stroke="var(--line)" stroke-width="1.4" opacity=".7"/>
+
+        <g class="float f1">
+          <g transform="translate(60 90)">
+            <circle cx="0" cy="-14" r="8" fill="var(--blush)" opacity=".9"/>
+            <circle cx="12" cy="-6" r="8" fill="var(--blush)" opacity=".9"/>
+            <circle cx="8" cy="9" r="8" fill="var(--blush)" opacity=".9"/>
+            <circle cx="-8" cy="9" r="8" fill="var(--blush)" opacity=".9"/>
+            <circle cx="-12" cy="-6" r="8" fill="var(--blush)" opacity=".9"/>
+            <circle cx="0" cy="0" r="6.5" fill="var(--tea)"/>
+          </g>
+        </g>
+
+        <g class="float f2">
+          <g transform="translate(152 68) scale(.75)">
+            <circle cx="0" cy="-13" r="7" fill="var(--tea)" opacity=".85"/>
+            <circle cx="11" cy="-5" r="7" fill="var(--tea)" opacity=".85"/>
+            <circle cx="7" cy="8" r="7" fill="var(--tea)" opacity=".85"/>
+            <circle cx="-7" cy="8" r="7" fill="var(--tea)" opacity=".85"/>
+            <circle cx="-11" cy="-5" r="7" fill="var(--tea)" opacity=".85"/>
+            <circle cx="0" cy="0" r="5.5" fill="var(--blush)"/>
+          </g>
+        </g>
+
+        <g class="float f3">
+          <g transform="translate(168 152) scale(1.15)">
+            <circle cx="0" cy="-13" r="7" fill="var(--herb)" opacity=".9"/>
+            <circle cx="11" cy="-5" r="7" fill="var(--herb)" opacity=".9"/>
+            <circle cx="7" cy="8" r="7" fill="var(--herb)" opacity=".9"/>
+            <circle cx="-7" cy="8" r="7" fill="var(--herb)" opacity=".9"/>
+            <circle cx="-11" cy="-5" r="7" fill="var(--herb)" opacity=".9"/>
+            <circle cx="0" cy="0" r="5.5" fill="var(--tea)"/>
+          </g>
+        </g>
+
+        <g class="float f4">
+          <g transform="translate(246 172) scale(.8)">
+            <circle cx="0" cy="-13" r="7" fill="var(--tea)" opacity=".85"/>
+            <circle cx="11" cy="-5" r="7" fill="var(--tea)" opacity=".85"/>
+            <circle cx="7" cy="8" r="7" fill="var(--tea)" opacity=".85"/>
+            <circle cx="-7" cy="8" r="7" fill="var(--tea)" opacity=".85"/>
+            <circle cx="-11" cy="-5" r="7" fill="var(--tea)" opacity=".85"/>
+            <circle cx="0" cy="0" r="5.5" fill="var(--blush)"/>
+          </g>
+        </g>
+
+        <g class="float f5">
+          <g transform="translate(84 196) scale(.6)">
+            <circle cx="0" cy="-13" r="7" fill="var(--blush)" opacity=".8"/>
+            <circle cx="11" cy="-5" r="7" fill="var(--blush)" opacity=".8"/>
+            <circle cx="7" cy="8" r="7" fill="var(--blush)" opacity=".8"/>
+            <circle cx="-7" cy="8" r="7" fill="var(--blush)" opacity=".8"/>
+            <circle cx="-11" cy="-5" r="7" fill="var(--blush)" opacity=".8"/>
+            <circle cx="0" cy="0" r="5.5" fill="var(--herb)"/>
+          </g>
+        </g>
+
+        <g class="float f6">
+          <g transform="translate(268 96) scale(.62)">
+            <circle cx="0" cy="-13" r="7" fill="var(--herb)" opacity=".85"/>
+            <circle cx="11" cy="-5" r="7" fill="var(--herb)" opacity=".85"/>
+            <circle cx="7" cy="8" r="7" fill="var(--herb)" opacity=".85"/>
+            <circle cx="-7" cy="8" r="7" fill="var(--herb)" opacity=".85"/>
+            <circle cx="-11" cy="-5" r="7" fill="var(--herb)" opacity=".85"/>
+            <circle cx="0" cy="0" r="5.5" fill="var(--tea)"/>
+          </g>
+        </g>
+
+        <path d="M60 112v50M152 90v70M168 174v36M246 194v28M84 216v18M268 118v46"
+              stroke="var(--herb)" stroke-width="2" stroke-linecap="round" opacity=".5"/>
+      </svg>
+    </div>
+    <div class="deck" id="deck">
+      <button class="close-btn" id="closeBtn" aria-label="닫기">✕</button>
+      <button class="nav-arrow" id="prevBtn" aria-label="이전 추천">‹</button>
+      <div id="cardBox" style="flex:1;min-width:0;"></div>
+      <button class="nav-arrow" id="nextBtn" aria-label="다음 추천">›</button>
+      <div class="dots" id="dots"></div>
+    </div>
+  </div>
+
+  <footer>디카페인도 카페인이 소량 남아있을 수 있어요. 잠들기 6시간 전부터는 완전 0인 쪽을 골라 보세요.</footer>
+</div>
+
+<script>
+const DRINKS = [
+  {name:"캐모마일차", emoji:"🌼", caf:"zero", moods:["sleep","stress"],
+   desc:"은은한 국화 향이 하루의 긴장을 풀어내는 밤의 정석.",
+   prices:[["🏪","편의점","4,500원"],["☕","카페","5,000원"],["🏠","집에서","230원"]],
+   recipe:"티백 1개에 85~90도 물 250ml, 3분. 꿀 반 스푼을 넣으면 마시기 훨씬 편해요."},
+  {name:"따뜻한 우유 + 꿀", emoji:"🥛", caf:"zero", moods:["sleep"],
+   desc:"온기와 단맛이 어우러진, 가장 오래된 위로 한 잔.",
+   prices:[["🏪","편의점","1,200원"],["🏠","집에서","600원"]],
+   recipe:"우유 200ml 전자레인지 1분30초 + 꿀 1작은술. 계핏가루를 살짝 뿌리면 향이 좋아져요."},
+  {name:"루이보스차", emoji:"🍂", caf:"zero", moods:["sleep","tasty"],
+   desc:"홍차를 닮은 붉은빛과 부드러운 여운, 그러나 카페인은 없이.",
+   prices:[["🏪","편의점","4,500원"],["☕","카페","5,000원"],["🏠","집에서","180원"]],
+   recipe:"티백 1개, 끓는 물 250ml, 5분. 따뜻한 우유 50ml를 부으면 루이보스 밀크티."},
+  {name:"페퍼민트차", emoji:"🌿", caf:"zero", moods:["focus","stress"],
+   desc:"청량한 향 한 모금으로 흐트러진 정신을 다시 세우다.",
+   prices:[["🏪","편의점","4,500원"],["☕","카페","5,000원"],["🏠","집에서","230원"]],
+   recipe:"티백 1개, 끓는 물 250ml, 4분. 식혀서 얼음에 부으면 아이스로도 좋아요."},
+  {name:"생강차", emoji:"🫚", caf:"zero", moods:["morning","stress"],
+   desc:"매콤한 온기가 몸속 깊은 곳부터 서서히 데워 준다.",
+   prices:[["🏪","편의점","800원"],["☕","카페","5,500원"],["🏠","집에서","400원"]],
+   recipe:"생강청 1큰술 + 뜨거운 물 200ml. 레몬 한 조각을 띄우면 향이 산뜻해져요."},
+  {name:"레몬 탄산수", emoji:"🫧", caf:"zero", moods:["focus","tasty"],
+   desc:"기포가 터지는 산뜻함, 설탕 없이도 정신이 맑아진다.",
+   prices:[["🏪","편의점","1,200원"],["🏠","집에서","500원"]],
+   recipe:"차가운 탄산수에 레몬 1/4개를 짜 넣고 껍질도 한 조각."},
+  {name:"바나나 우유", emoji:"🍌", caf:"zero", moods:["tasty","morning"],
+   desc:"부드럽고 달콤한, 설명이 필요 없는 클래식.",
+   prices:[["🏪","편의점","1,800원"],["🏠","집에서","900원"]],
+   recipe:"바나나 1개 + 우유 200ml 믹서에 30초. 얼린 바나나를 쓰면 더 진해요."},
+  {name:"히비스커스차", emoji:"🌺", caf:"zero", moods:["morning","tasty"],
+   desc:"진홍빛 색과 새콤함이 눈과 입을 동시에 깨우는 한 잔.",
+   prices:[["☕","카페","5,500원"],["🏠","집에서","330원"]],
+   recipe:"티백 1개를 진하게 우려 식힌 뒤 얼음 가득한 컵에. 꿀 1작은술을 더해요."},
+  {name:"보리차", emoji:"🌾", caf:"zero", moods:["focus","tasty"],
+   desc:"구수한 향이 물처럼 편안하게, 종일 곁에 두어도 좋은 맛.",
+   prices:[["🏪","편의점","1,300원"],["🏠","집에서","250원"]],
+   recipe:"티백 1개에 물 1L. 끓여서 식히거나 찬물에 넣고 냉장고에서 3시간."},
+  {name:"유자차", emoji:"🍋", caf:"zero", moods:["stress","morning"],
+   desc:"달콤새콤한 향이 가라앉은 기분을 부드럽게 끌어올린다.",
+   prices:[["🏪","편의점","900원"],["☕","카페","5,500원"],["🏠","집에서","500원"]],
+   recipe:"유자청 1.5큰술 + 뜨거운 물 200ml. 차갑게 마실 땐 찬물 150ml + 얼음."},
+  {name:"대추차", emoji:"🫘", caf:"zero", moods:["sleep","stress"],
+   desc:"은근한 단맛이 몸을 감싸며 하루를 조용히 마무리하게 한다.",
+   prices:[["🏪","편의점","900원"],["☕","카페","5,500원"],["🏠","집에서","600원"]],
+   recipe:"말린 대추 5알을 물 500ml에 넣고 20분 약불. 시간 없으면 스틱 제품으로."},
+  {name:"메밀차", emoji:"🍵", caf:"zero", moods:["sleep","tasty"],
+   desc:"고소한 향이 은은하게 남는, 밤새 곁에 두어도 좋은 담백함.",
+   prices:[["🏪","편의점","1,300원"],["🏠","집에서","150원"]],
+   recipe:"티백 1개에 끓는 물 300ml, 3분. 식혀서 냉장고에 두면 다음 날 물 대신 좋아요."}
+];
+
+let mood = null;
+let idx = 0;
+let randomPick = null;
+
+function matches(){
+  if(mood === "random") return randomPick ? [randomPick] : [];
+  return DRINKS.filter(d => d.moods.includes(mood));
+}
+
+function buildCardHTML(d, idx, total){
+  return `
+    <div class="card">
+      <div class="emoji" aria-hidden="true">${d.emoji}</div>
+      <h2>${d.name}</h2>
+      <p class="desc">${d.desc}</p>
+    </div>
+  `;
+}
+
+function makePageEl(html, startClass){
+  const wrap = document.createElement("div");
+  wrap.className = "page" + (startClass ? " " + startClass : "");
+  wrap.innerHTML = html;
+  return wrap;
+}
+
+function render(dir){
+  const deck = document.getElementById("deck");
+  const dots = document.getElementById("dots");
+
+  if(!mood){
+    deck.classList.remove("open");
+    dots.innerHTML = "";
+    return;
+  }
+  deck.classList.add("open");
+
+  const list = matches();
+  if(idx >= list.length) idx = 0;
+  if(idx < 0) idx = list.length - 1;
+  const d = list[idx];
+  const html = buildCardHTML(d, idx, list.length);
+
+  const cardBox = document.getElementById("cardBox");
+  const oldPage = cardBox.querySelector(".page");
+
+  if(oldPage && dir){
+    const newPage = makePageEl(html, dir === "right" ? "enter-from-right" : "enter-from-left");
+    cardBox.appendChild(newPage);
+    newPage.getBoundingClientRect();
+    requestAnimationFrame(() => {
+      oldPage.classList.add(dir === "right" ? "exit-left" : "exit-right");
+      newPage.classList.remove("enter-from-left","enter-from-right");
+      newPage.classList.add("settled");
+    });
+    window.setTimeout(() => { if(oldPage.parentNode) oldPage.remove(); }, 320);
+  } else {
+    cardBox.innerHTML = "";
+    const firstPage = makePageEl(html, "enter-first");
+    cardBox.appendChild(firstPage);
+    firstPage.getBoundingClientRect();
+    requestAnimationFrame(() => {
+      firstPage.classList.remove("enter-first");
+      firstPage.classList.add("settled");
+    });
+  }
+
+  document.getElementById("dots").innerHTML = list.map((_,i) =>
+    `<button class="dot" data-i="${i}" aria-current="${i===idx}" aria-label="${i+1}번째 추천"></button>`
+  ).join("");
+
+  document.getElementById("prevBtn").disabled = list.length <= 1;
+  document.getElementById("nextBtn").disabled = list.length <= 1;
+}
+
+document.getElementById("randomBtn").addEventListener("click", () => {
+  const btn = document.getElementById("randomBtn");
+  const track = document.getElementById("reelTrack");
+  if(btn.disabled) return;
+  btn.disabled = true;
+
+  document.querySelectorAll(".mood").forEach(b => b.setAttribute("aria-pressed","false"));
+
+  const ITEM_H = 58;
+  const LAPS = 4;
+  const pick = DRINKS[Math.floor(Math.random() * DRINKS.length)];
+
+  const reelItems = [];
+  for(let i = 0; i < DRINKS.length * LAPS; i++){
+    reelItems.push(DRINKS[Math.floor(Math.random() * DRINKS.length)].emoji);
+  }
+  reelItems.push(pick.emoji);
+
+  track.style.transition = "none";
+  track.style.transform = "translateY(0)";
+  track.innerHTML = reelItems.map(e => `<div class="reel-item">${e}</div>`).join("");
+
+  track.getBoundingClientRect();
+  requestAnimationFrame(() => {
+    const finalY = -(reelItems.length - 1) * ITEM_H;
+    track.style.transition = "transform 1.7s cubic-bezier(.12,.72,.2,1)";
+    track.style.transform = `translateY(${finalY}px)`;
+  });
+
+  window.setTimeout(() => {
+    btn.disabled = false;
+    randomPick = pick;
+    mood = "random";
+    idx = 0;
+    render("right");
+  }, 1750);
+});
+
+document.getElementById("moods").addEventListener("click", e => {
+  const btn = e.target.closest(".mood");
+  if(!btn) return;
+  const chosen = btn.dataset.mood;
+  mood = (mood === chosen) ? null : chosen;
+  idx = 0;
+  document.querySelectorAll(".mood").forEach(b =>
+    b.setAttribute("aria-pressed", String(b.dataset.mood === mood)));
+  render("right");
+});
+
+document.getElementById("cardBox").addEventListener("click", e => {
+  const btn = e.target.closest(".recipe-btn");
+  if(!btn) return;
+  const box = btn.nextElementSibling;
+  const open = box.hidden;
+  box.hidden = !open;
+  btn.setAttribute("aria-expanded", String(open));
+  btn.querySelector("span").textContent = open ? "접기" : "만드는 법 보기";
+});
+
+document.getElementById("closeBtn").addEventListener("click", () => {
+  mood = null;
+  document.querySelectorAll(".mood").forEach(b => b.setAttribute("aria-pressed","false"));
+  render();
+});
+
+document.getElementById("prevBtn").addEventListener("click", () => { idx--; render("left"); });
+document.getElementById("nextBtn").addEventListener("click", () => { idx++; render("right"); });
+
+document.getElementById("dots").addEventListener("click", e => {
+  const dot = e.target.closest(".dot");
+  if(!dot) return;
+  const newIdx = parseInt(dot.dataset.i, 10);
+  const dir = newIdx > idx ? "right" : "left";
+  idx = newIdx;
+  render(dir);
+});
+
+/* ---- 이스터에그: 로고 5번 클릭하면 게임 등장 ---- */
+(function(){
+  let tapCount = 0, tapTimer = null;
+  document.getElementById("logoMark").addEventListener("click", () => {
+    tapCount++;
+    clearTimeout(tapTimer);
+    tapTimer = setTimeout(() => { tapCount = 0; }, 1500);
+    if(tapCount >= 5){
+      tapCount = 0;
+      openEgg();
+    }
+  });
+})();
+
+const GOOD_EMOJI = ["🌼","🥛","🍂","🌿","🫚","🧉","🍵","🫘"];
+const BAD_EMOJI  = ["☕","⚡","🥤"];
+
+let eggRunning = false, eggScore = 0, eggLives = 3, eggBasketX = 50;
+let eggItems = [], eggSpawnTimer = null, eggRAF = null, eggLastSpawn = 0;
+
+function openEgg(){
+  document.getElementById("eggOverlay").classList.add("open");
+  document.getElementById("eggStart").style.display = "flex";
+  document.getElementById("eggField").innerHTML = "";
+  eggScore = 0; eggLives = 3;
+  updateEggHud();
+}
+function closeEgg(){
+  eggRunning = false;
+  cancelAnimationFrame(eggRAF);
+  document.getElementById("eggOverlay").classList.remove("open");
+}
+function updateEggHud(){
+  document.getElementById("eggScore").textContent = eggScore + "점";
+  document.getElementById("eggLives").textContent = "❤️".repeat(Math.max(eggLives,0)) + "🖤".repeat(3-Math.max(eggLives,0));
+}
+
+function startEgg(){
+  document.getElementById("eggStart").style.display = "none";
+  const field = document.getElementById("eggField");
+  field.innerHTML = "";
+  eggItems = [];
+  eggScore = 0; eggLives = 3; eggBasketX = 50;
+  updateEggHud();
+
+  const basket = document.createElement("div");
+  basket.className = "egg-basket";
+  basket.id = "eggBasket";
+  basket.textContent = "🧋";
+  field.appendChild(basket);
+
+  eggRunning = true;
+  eggLastSpawn = 0;
+  eggRAF = requestAnimationFrame(eggLoop);
+}
+
+function eggLoop(ts){
+  if(!eggRunning) return;
+  const field = document.getElementById("eggField");
+  const fw = field.clientWidth, fh = field.clientHeight;
+
+  if(!eggLastSpawn || ts - eggLastSpawn > 620){
+    eggLastSpawn = ts;
+    const isGood = Math.random() > 0.35;
+    const emoji = isGood
+      ? GOOD_EMOJI[Math.floor(Math.random()*GOOD_EMOJI.length)]
+      : BAD_EMOJI[Math.floor(Math.random()*BAD_EMOJI.length)];
+    const el = document.createElement("div");
+    el.className = "egg-item " + (isGood ? "good" : "bad");
+    el.textContent = emoji;
+    const x = 10 + Math.random() * 80;
+    el.style.left = x + "%";
+    el.style.top = "-30px";
+    field.appendChild(el);
+    eggItems.push({el, x, y:-30, good:isGood, speed:1.6 + Math.random()*1.4});
+  }
+
+  const basket = document.getElementById("eggBasket");
+  basket.style.left = eggBasketX + "%";
+  const basketY = fh - 70;
+
+  for(let i = eggItems.length - 1; i >= 0; i--){
+    const it = eggItems[i];
+    it.y += it.speed;
+    it.el.style.top = it.y + "px";
+
+    const dx = Math.abs((it.x/100*fw) - (eggBasketX/100*fw));
+    if(it.y > basketY - 20 && it.y < basketY + 20 && dx < 34){
+      if(it.good){ eggScore++; }
+      else { eggLives--; }
+      updateEggHud();
+      it.el.remove();
+      eggItems.splice(i,1);
+      if(eggLives <= 0){ endEgg(); return; }
+      continue;
+    }
+    if(it.y > fh + 30){
+      it.el.remove();
+      eggItems.splice(i,1);
+    }
+  }
+
+  eggRAF = requestAnimationFrame(eggLoop);
+}
+
+function endEgg(){
+  eggRunning = false;
+  cancelAnimationFrame(eggRAF);
+  const field = document.getElementById("eggField");
+  eggItems.forEach(it => it.el.remove());
+  eggItems = [];
+  const msg = document.getElementById("eggStart");
+  msg.innerHTML = `<h3>카페인에 당첨...</h3><p>이번 점수: ${eggScore}점</p><button class="egg-btn" id="eggStartBtn">다시하기</button>`;
+  msg.style.display = "flex";
+  document.getElementById("eggStartBtn").addEventListener("click", startEgg);
+}
+
+document.getElementById("eggStartBtn").addEventListener("click", startEgg);
+document.getElementById("eggClose").addEventListener("click", closeEgg);
+
+document.getElementById("eggOverlay").addEventListener("pointermove", e => {
+  if(!eggRunning) return;
+  const rect = document.getElementById("eggField").getBoundingClientRect();
+  const pct = ((e.clientX - rect.left) / rect.width) * 100;
+  eggBasketX = Math.min(94, Math.max(6, pct));
+});
+
+document.getElementById("monoToggle").addEventListener("click", () => {
+  const btn = document.getElementById("monoToggle");
+  const isLight = document.body.classList.toggle("light");
+  btn.setAttribute("aria-pressed", String(isLight));
+  btn.textContent = isLight ? "☀" : "☾";
+  btn.setAttribute("aria-label", isLight ? "다크 모드 전환" : "라이트 모드 전환");
+});
+
+(function setClock(){
+  const h = new Date().getHours();
+  const el = document.getElementById("clock");
+  if(h >= 22 || h < 5) el.textContent = "이 시간엔 카페인 대신";
+  else if(h < 11) el.textContent = "아침, 아직 늦지 않았어요";
+  else if(h < 18) el.textContent = "오후 6시 넘기면 커피는 미루기";
+  else el.textContent = "슬슬 카페인 줄일 시간";
+})();
+
+render();
+</script>
 </body>
 </html>
